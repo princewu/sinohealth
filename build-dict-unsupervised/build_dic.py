@@ -265,19 +265,29 @@ class Find_Words:
             所有切分的词，及其互信息值。
         '''
         result =[]
+        all_combos =[] # 所有的组合
         for i in range(len(child_dic), 2, -1):  #遍历子词典
         # 字典经过多轮更新后，可能出现某一个子字典里面为空的情况。try-except主要解决规避这个问题引起的报错。
             try: 
                 # print(i)
                 for s in child_dic[i]:  # 遍历子词典中的词
                     tmp = []
+                    tmp2 = []
                     for p in range(len(s)-1, 0, -1): # 二分法去查找所有可能的结果。
                         for w in child_dic[p].keys():
                             if w == s[:p] and s[p:] in child_dic[len(s)-p].keys(): 
                                 mi = words[s]/(words[w]*words[s[p:]])
                                 tmp.append([s,w,s[p:], mi])
-    
+                                tmp2.append([w, s[p:], round(mi*100000, 2)])
+                                # print(tmp2)
                     tmp = sorted(tmp, key=lambda x: x[3],reverse=False)
+                    tmp2 = sorted(tmp2, key=lambda x: x[2],reverse=False)
+                    if tmp2:
+                        for each in tmp2:
+                            # print(s)
+                            all_combos.append([s, words[s], str(tmp2)])
+                    else:
+                        all_combos.append([s, words[s],'-'])
                     if tmp:
                         result.append(tmp[0])
                         result = sorted(result, key=lambda x: x[3],reverse=True) # 按照互信息值从小到大排序
@@ -296,7 +306,7 @@ class Find_Words:
                 result.pop(m)  
             else:
                 pass   
-        return result, sep_set
+        return result, sep_set, all_combos
         
 
 
@@ -327,8 +337,9 @@ if __name__ == "__main__":
     p_count = len(words)
     for t in ['后','等','起','前','右','左','及','出','阵','上','下','时','来','在','或','和','多','少','未','被','有','好']:
         test_t = fw.tail_freq_ratio(t, words, 2)
+        
     child_dic = fw.rebuild_dic(words)
-    result, sep_set = fw.sep_long_sent(child_dic, 0.1)
+    result, sep_set, all_combos = fw.sep_long_sent(child_dic, 0.1)
         
     
     #     #     print(s)
