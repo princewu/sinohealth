@@ -228,85 +228,85 @@ class Find_Words:
         return o_dic
 
 
-    def rebuild_dic(self, dic):
-        '''
-        重构字典，按照字典词的字数重构
-        Parameters
-        ----------
-        dic : dict
-            原词典
-        Returns
-        -------
-        child_dic : dict
-            按词的字数重新整理的词典
-        '''
-        child_dic = {}
-        for k,v in dic.items():
-            word_len = len(k)
-            if word_len not in child_dic.keys():
-                child_dic[word_len] = {}
-            child_dic[word_len][k] = v
-        return child_dic
+def rebuild_dic( dic):
+    '''
+    重构字典，按照字典词的字数重构
+    Parameters
+    ----------
+    dic : dict
+        原词典
+    Returns
+    -------
+    child_dic : dict
+        按词的字数重新整理的词典
+    '''
+    child_dic = {}
+    for k,v in dic.items():
+        word_len = len(k)
+        if word_len not in child_dic.keys():
+            child_dic[word_len] = {}
+        child_dic[word_len][k] = v
+    return child_dic
 
-    def sep_long_sent(self, child_dic, beta):
-        '''
-        基于互信息（MI）进行切词，主要为了把较长的词拆为较小颗粒的词。
-        Parameters
-        ----------
-        child_dic : dict
-            按词条字数整理的词典
-        beta : int
-            互信息的阈值
-        Returns
-        -------
-        result : dict
-            未切分的词及其互信息值。
-        sep_set : dict
-            所有切分的词，及其互信息值。
-        '''
-        result =[]
-        all_combos =[] # 所有的组合
-        for i in range(len(child_dic), 2, -1):  #遍历子词典
-        # 字典经过多轮更新后，可能出现某一个子字典里面为空的情况。try-except主要解决规避这个问题引起的报错。
-            try: 
-                # print(i)
-                for s in child_dic[i]:  # 遍历子词典中的词
-                    tmp = []
-                    tmp2 = []
-                    for p in range(len(s)-1, 0, -1): # 二分法去查找所有可能的结果。
-                        for w in child_dic[p].keys():
-                            if w == s[:p] and s[p:] in child_dic[len(s)-p].keys(): 
-                                mi = words[s]/(words[w]*words[s[p:]])
-                                tmp.append([s,w,s[p:], mi])
-                                tmp2.append([w, s[p:], round(mi*100000, 2)])
-                                # print(tmp2)
-                    tmp = sorted(tmp, key=lambda x: x[3],reverse=False)
-                    tmp2 = sorted(tmp2, key=lambda x: x[2],reverse=False)
-                    if tmp2:
-                        for each in tmp2:
-                            # print(s)
-                            all_combos.append([s, words[s], str(tmp2)])
-                    else:
-                        all_combos.append([s, words[s],'-'])
-                    if tmp:
-                        result.append(tmp[0])
-                        result = sorted(result, key=lambda x: x[3],reverse=True) # 按照互信息值从小到大排序
-            except:
-                pass
-        print('-----------------------------')
-        sep_set = []
-        result = sorted(result, key=lambda x: len(x[0]),reverse=False) # 按词条字数，从多到少，进行排序
-        for m in range(len(result)-1,-1,-1):
-            if result[m][3] <= beta: # beta为MI的阈值
-                words[result[m][1]] += words[result[m][0]]
-                words[result[m][2]] += words[result[m][0]]
-                del words[result[m][0]]
-                print(result[m][0])
-                sep_set.append(result[m])
-                result.pop(m)  
-            else:
-                pass   
-        return result, sep_set, all_combos
+def sep_long_sent( child_dic, beta):
+    '''
+    基于互信息（MI）进行切词，主要为了把较长的词拆为较小颗粒的词。
+    Parameters
+    ----------
+    child_dic : dict
+        按词条字数整理的词典
+    beta : int
+        互信息的阈值
+    Returns
+    -------
+    result : dict
+        未切分的词及其互信息值。
+    sep_set : dict
+        所有切分的词，及其互信息值。
+    '''
+    result =[]
+    all_combos =[] # 所有的组合
+    for i in range(len(child_dic), 2, -1):  #遍历子词典
+    # 字典经过多轮更新后，可能出现某一个子字典里面为空的情况。try-except主要解决规避这个问题引起的报错。
+        try: 
+            print(i)
+            for s in child_dic[i]:  # 遍历子词典中的词
+                tmp = []
+                tmp2 = []
+                for p in range(len(s)-1, 0, -1): # 二分法去查找所有可能的结果。
+                    for w in child_dic[p].keys():
+                        if w == s[:p] and s[p:] in child_dic[len(s)-p].keys():
+                            mi = words[s]/(words[w]*words[s[p:]])
+                            tmp.append([s,w,s[p:], mi])
+                            tmp2.append([w, s[p:], round(mi*100000, 2)])
+                            # print(tmp2)
+                tmp = sorted(tmp, key=lambda x: x[3],reverse=False)
+                tmp2 = sorted(tmp2, key=lambda x: x[2],reverse=False)
+                if tmp2:
+                    for each in tmp2:
+                        # print(s)
+                        all_combos.append([s, words[s], str(tmp2)])
+                else:
+                    all_combos.append([s, words[s],'-'])
+                if tmp:
+                    result.append(tmp[0])
+                    result = sorted(result, key=lambda x: x[3],reverse=True) # 按照互信息值从小到大排序
+        except:
+            pass
+    print('-----------------------------')
+    sep_set = []
+    result = sorted(result, key=lambda x: len(x[0]),reverse=False) # 按词条字数，从多到少，进行排序
+    for m in range(len(result)-1,-1,-1):
+        if result[m][3] <= beta: # beta为MI的阈值
+            words[result[m][1]] += words[result[m][0]]
+            words[result[m][2]] += words[result[m][0]]
+            del words[result[m][0]]
+            print(result[m][0])
+            sep_set.append(result[m])
+            result.pop(m)  
+        else:
+            pass   
+    return result, sep_set, all_combos
         
 
 
@@ -315,31 +315,40 @@ class Find_Words:
 if __name__ == "__main__":
     # csv2txt('E:/HaoWu/data/duplicate_emrs.csv', 600000,'E:/HaoWu/data/raw_data.txt')
 
-    fw = Find_Words(5, 1)
-    texts = fw.text_import('E:/HaoWu/data/train_data.txt')
-    fw.count(texts)
-    fw.find_words(texts)
-    # mutal_info_score = fw.mutal_info_score
-    # 生成词典，输出词典 
-    words = fw.words
-    for word in list(words.keys()):
-        result = re.match('^[\u4e00-\u9fa5]*$', word)
-        if not result:
-            words.pop(word)
+    # fw = Find_Words(5, 1)
+    # texts = fw.text_import('E:/HaoWu/data/raw_data.txt')
+    # fw.count(texts)
+    # fw.find_words(texts)
+    # # mutal_info_score = fw.mutal_info_score
+    # # 生成词典，输出词典 
+    # words = fw.words
+    # for word in list(words.keys()):
+    #     result = re.match('^[\u4e00-\u9fa5]*$', word)
+    #     if not result:
+    #         words.pop(word)
+    
     # words.to_csv('dict_demo.txt', sep='\t',index=True)
-    one_word_list = fw.short_word_segment(words)
+    
 
     # start：
     p_count = len(words)
     for h in ['无','有','伴','能','一','为','且','不','于','以','也','仍','觉','但','及','和','咯','或','由','的','至']:
         test_h = fw.head_freq_ratio(h, words, 2)
-    # end
+    # # end
     p_count = len(words)
     for t in ['后','等','起','前','右','左','及','出','阵','上','下','时','来','在','或','和','多','少','未','被','有','好']:
         test_t = fw.tail_freq_ratio(t, words, 2)
-        
-    child_dic = fw.rebuild_dic(words)
-    result, sep_set, all_combos = fw.sep_long_sent(child_dic, 0.1)
+   
+    one_word_list = fw.short_word_segment(words)
+    
+    # # for a in one_word_list:
+    # #     words.pop(a)
+    
+    child_dic = rebuild_dic(words)
+    result, sep_set, all_combos = sep_long_sent(child_dic, 0.1)
+    
+    
+    
         
     
     #     #     print(s)
