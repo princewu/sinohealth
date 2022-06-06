@@ -1,0 +1,2 @@
+ * Running on http://0.0.0.0:10036/ (Press CTRL+C to quit)
+10.106.200.192 - - [06/Jun/2022 04:10:06] "POST /word_cut HTTP/1.1" 200 -
